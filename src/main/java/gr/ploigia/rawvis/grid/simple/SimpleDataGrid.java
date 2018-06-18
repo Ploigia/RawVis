@@ -1,0 +1,19 @@
+package gr.ploigia.rawvis.grid.simple;
+
+import gr.ploigia.rawvis.common.Rectangle;
+import gr.ploigia.rawvis.grid.DataGrid;
+import gr.ploigia.rawvis.grid.GridTile;
+
+
+public class SimpleDataGrid extends DataGrid {
+
+
+    public SimpleDataGrid(Rectangle bounds, int rowCount, int colCount, int threshold) {
+        super(bounds, rowCount, colCount, threshold);
+    }
+
+    @Override
+    public GridTile createTile(Rectangle bounds) {
+        return new SimpleGridTile(bounds, threshold);
+    }
+}
