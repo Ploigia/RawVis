@@ -1,13 +1,12 @@
 package gr.ploigia.rawvis.query;
 
-import gr.ploigia.rawvis.common.Rectangle;
-import gr.ploigia.rawvis.common.Stats;
+import gr.ploigia.rawvis.Rectangle;
 
 public class QueryResults {
 
     private Rectangle query;
 
-    private Stats stats;
+    private Object stats;
 
     private int fullyContainedTileCount;
 
@@ -25,11 +24,11 @@ public class QueryResults {
         this.query = query;
     }
 
-    public Stats getStats() {
+    public Object getStats() {
         return stats;
     }
 
-    public void setStats(Stats stats) {
+    public void setStats(Object stats) {
         this.stats = stats;
     }
 

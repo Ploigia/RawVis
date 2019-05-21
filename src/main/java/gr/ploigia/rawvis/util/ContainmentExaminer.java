@@ -1,7 +1,7 @@
 package gr.ploigia.rawvis.util;
 
-import gr.ploigia.rawvis.grid.Point;
+import gr.ploigia.rawvis.Point;
 
 public interface ContainmentExaminer {
-    public boolean contains(Point point);
+    boolean contains(Point point);
 }

@@ -2,7 +2,7 @@ package gr.ploigia.rawvis.util;
 
 
 import com.google.common.collect.Range;
-import gr.ploigia.rawvis.grid.Point;
+import gr.ploigia.rawvis.Point;
 
 public class XYContainmentExaminer implements ContainmentExaminer {
 

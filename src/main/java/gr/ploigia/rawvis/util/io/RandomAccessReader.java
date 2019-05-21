@@ -13,26 +13,20 @@ public class RandomAccessReader extends RandomAccessFile {
 
     // default buffer size, 64Kb
     public static final int DEFAULT_BUFFER_SIZE = 65536;
-
+    // channel liked with the file, used to retrieve data and force updates.
+    protected final FileChannel channel;
     // absolute filesystem path to the file
     private final String filePath;
-
+    private final long fileLength;
     // buffer which will cache file blocks
     protected byte[] buffer;
-
     // `current` as current position in file
     // `bufferOffset` is the offset of the beginning of the buffer
     // `markedPointer` folds the offset of the last file mark
     protected long bufferOffset, current = 0, markedPointer;
     // `validBufferBytes` is the number of bytes in the buffer that are actually valid;
     //  this will be LESS than buffer capacity if buffer is not full!
-    protected int validBufferBytes = 0;
-
-    // channel liked with the file, used to retrieve data and force updates.
-    protected final FileChannel channel;
-
-
-    private final long fileLength;
+    protected int validBufferBytes;
 
     private RandomAccessReader(File file, int bufferSize) throws IOException {
         super(file, "r");
@@ -59,7 +53,6 @@ public class RandomAccessReader extends RandomAccessFile {
     public static RandomAccessReader open(File file, int bufferSize) throws IOException {
         return new RandomAccessReader(file, bufferSize);
     }
-
 
 
     /**
@@ -110,13 +103,12 @@ public class RandomAccessReader extends RandomAccessFile {
 
     /**
      * @return true if there is no more data to read
-     * @throws IOException on any I/O error.
      */
-    public boolean isEOF() throws IOException {
+    public boolean isEOF() {
         return getFilePointer() == length();
     }
 
-    public long bytesRemaining() throws IOException {
+    public long bytesRemaining() {
         return length() - getFilePointer();
     }
 
@@ -131,9 +123,9 @@ public class RandomAccessReader extends RandomAccessFile {
 
     @Override
     public void close() throws IOException {
-        buffer = null;        super.close();
+        buffer = null;
+        super.close();
     }
-
 
 
     @Override
@@ -215,22 +207,22 @@ public class RandomAccessReader extends RandomAccessFile {
     }
 
     @Override
-    public long length() throws IOException {
+    public long length() {
         return fileLength;
     }
 
     @Override
-    public void write(int value) throws IOException {
+    public void write(int value) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void write(byte[] buffer) throws IOException {
+    public void write(byte[] buffer) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void write(byte[] buffer, int offset, int length) throws IOException {
+    public void write(byte[] buffer, int offset, int length) {
         throw new UnsupportedOperationException();
     }
 }
