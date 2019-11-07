@@ -177,6 +177,10 @@ public class Valinor {
     }
 
     public void executeWindowQuery(Rectangle rectangle, DataPointProcessor pointProcessor, QueryResultsTraversalPolicy policy) {
+        if (!isInitialized) {
+            initialize();
+        }
+        
         List<TileIterator> tileIterators = this.getTileIterators(rectangle, null, null);
         Iterator<Point> pointIterator = this.getQueryResultsIterator(policy, tileIterators);
 
