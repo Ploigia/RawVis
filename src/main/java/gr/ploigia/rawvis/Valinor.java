@@ -463,6 +463,10 @@ public class Valinor {
         this.subtileRatio = subtileRatio;
     }
 
+    public int getMaxDepth(){
+        return grid.getMaxDepth();
+    }
+
     @Override
     public String toString() {
         return grid.printTiles();

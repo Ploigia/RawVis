@@ -114,4 +114,17 @@ public class QuadTreeTile extends Tile {
         return topLeft.getLeafTileCount() + topRight.getLeafTileCount()
                 + bottomLeft.getLeafTileCount() + bottomRight.getLeafTileCount();
     }
+
+    @Override
+    public int getMaxDepth() {
+        if (topLeft == null) {
+            return 0;
+        }
+        int depth = 0;
+        depth = Integer.max(depth, topLeft.getMaxDepth() + 1);
+        depth = Integer.max(depth, topRight.getMaxDepth() + 1);
+        depth = Integer.max(depth, bottomLeft.getMaxDepth() + 1);
+        depth = Integer.max(depth, bottomRight.getMaxDepth() + 1);
+        return depth;
+    }
 }

@@ -96,6 +96,8 @@ public abstract class Tile {
         return "{" + this.bounds.toString() + " , " + (tilePointList != null ? tilePointList.getPointList().size() : null) + "}";
     }
 
+    public abstract int getMaxDepth();
+
     public abstract int getLeafTileCount();
 
 }

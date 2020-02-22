@@ -31,5 +31,9 @@ public class SimpleTile extends Tile {
         return leafTiles;
     }
 
+    public int getMaxDepth() {
+        return 0;
+    }
+
 
 }

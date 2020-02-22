@@ -39,7 +39,6 @@ public class Grid extends Tile {
     }
 
 
-
     public void split(Rectangle query, int gridSize, double subtileRatio) {
         this.gridSize = gridSize;
 
@@ -217,5 +216,13 @@ public class Grid extends Tile {
         return count;
     }
 
-
+    public int getMaxDepth() {
+        int depth = 0;
+        for (Tile[] tileRow : tiles) {
+            for (Tile tile : tileRow) {
+                depth = Integer.max(depth, tile.getMaxDepth() + 1);
+            }
+        }
+        return depth;
+    }
 }

@@ -161,7 +161,6 @@ public class QuerySplitTile extends Tile {
         }
     }
 
-
     private BoundType reverseBoundType(BoundType boundType) {
         switch (boundType) {
             case OPEN:
@@ -187,4 +186,19 @@ public class QuerySplitTile extends Tile {
         }
         return count;
     }
+
+    @Override
+    public int getMaxDepth() {
+        if (subTiles == null) {
+            return 0;
+        }
+        int depth = 0;
+        for (Tile[] tileRow : subTiles) {
+            for (Tile subTile : tileRow) {
+                depth = Integer.max(depth, subTile.getMaxDepth() + 1);
+            }
+        }
+        return depth;
+    }
+
 }
