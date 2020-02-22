@@ -180,7 +180,6 @@ public class Valinor {
         if (!isInitialized) {
             initialize();
         }
-        
         List<TileIterator> tileIterators = this.getTileIterators(rectangle, null, null);
         Iterator<Point> pointIterator = this.getQueryResultsIterator(policy, tileIterators);
 
