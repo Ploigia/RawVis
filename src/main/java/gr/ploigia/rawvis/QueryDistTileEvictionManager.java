@@ -18,18 +18,18 @@ public class QueryDistTileEvictionManager implements TilePointListFactory {
     private int maxSize;
     private int inMemoryCount = 0;
     private List<QueryDistDiskTilePointList> list;
-    private Rectangle firstQuery;
+    private Rectangle lastQuery;
     private Path tmpDir;
     private Comparator<QueryDistDiskTilePointList> queryDistComparator;
+    private int evictionCount = 0;
 
-
-    private QueryDistTileEvictionManager(int maxSize, String cachePath, Rectangle firstQuery) throws IOException {
+    private QueryDistTileEvictionManager(int maxSize, String cachePath, Rectangle lastQuery) throws IOException {
         this.maxSize = maxSize;
-        this.firstQuery = firstQuery;
         tmpDir = Files.createTempDirectory(Paths.get(cachePath), "valinor");
         list = new ArrayList<>();
+        this.lastQuery = lastQuery;
         queryDistComparator
-                = Comparator.comparingDouble(diskTilePointList -> diskTilePointList.getTileBounds().distanceFrom(firstQuery));
+                = Comparator.comparingDouble(diskTilePointList -> diskTilePointList.getTileBounds().distanceFrom(this.lastQuery));
     }
 
     public static QueryDistTileEvictionManager getInstance() {
@@ -70,11 +70,16 @@ public class QueryDistTileEvictionManager implements TilePointListFactory {
             inMemoryCount = inMemoryCount - diskTilePointList.getInMemoryCount();
             list.remove(diskTilePointList);
             diskTilePointList.evict();
+            evictionCount++;
         }
     }
 
     public String getTmpDir() {
         return tmpDir.toString();
+    }
+
+    public void setLastQuery(Rectangle lastQuery) {
+        this.lastQuery = lastQuery;
     }
 
     @Override
@@ -84,5 +89,9 @@ public class QueryDistTileEvictionManager implements TilePointListFactory {
 
     public int getNumberOfTilesManaged() {
         return list.size();
+    }
+
+    public int getEvictionCount() {
+        return evictionCount;
     }
 }

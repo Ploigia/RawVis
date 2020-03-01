@@ -35,7 +35,6 @@ public class QueryDistDiskTilePointList implements TilePointList {
     @Override
     public List<Point> getPointList() {
         if (inMemoryCount < totalCount) {
-
             if (pointList != null) {
                 QueryDistTileEvictionManager.getInstance().remove(this);
             }
@@ -80,7 +79,6 @@ public class QueryDistDiskTilePointList implements TilePointList {
 
     void evict() {
         if (totalCount > inDiskCount) {
-            //LOG.debug("Evicting non-persisted tile");
             try {
                 DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(this.path, true)));
                 for (int i = totalCount == inMemoryCount ? inDiskCount : 0; i < pointList.size(); i++) {
