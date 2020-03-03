@@ -1,5 +1,7 @@
 package gr.ploigia.rawvis.query;
 
+import com.google.common.math.StatsAccumulator;
+
 import java.util.function.Predicate;
 
 public class FilterPredicate implements Predicate<Float> {
@@ -42,5 +44,38 @@ public class FilterPredicate implements Predicate<Float> {
             default:
                 return false;
         }
+    }
+
+    /**
+     * Test if objects of a tile satisfy the predicate
+     *
+     * @param tileStatsAcc
+     * @return true if all objects satisfy, false if all objects do not satisfy, otherwise null
+     */
+    public Boolean testTile(StatsAccumulator tileStatsAcc) {
+        double min = tileStatsAcc.min();
+        double max = tileStatsAcc.max();
+        switch (operator) {
+            case LESS_THAN:
+                if (constant < min)
+                    return false;
+                else if (constant > max)
+                    return true;
+            case GREATER_THAN:
+                if (constant < min)
+                    return true;
+                else if (constant > max)
+                    return false;
+            default:
+                return null;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "FilterPredicate{" +
+                "operator=" + operator +
+                ", constant=" + constant +
+                '}';
     }
 }

@@ -3,7 +3,6 @@ package gr.ploigia.rawvis;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Range;
 import com.google.common.math.PairedStatsAccumulator;
-import com.google.common.math.Stats;
 import com.google.common.math.StatsAccumulator;
 import gr.ploigia.rawvis.query.FilterPredicate;
 import gr.ploigia.rawvis.query.QueryResults;
@@ -126,7 +125,7 @@ public class Valinor {
                             statsAccumulator.add(value);
                         }
                     } catch (Exception e) {
-                        LOG.error(e.getMessage());
+                        LOG.error(e);
                         LOG.error("Problem parsing row number " + i + ": " + Arrays.toString(row), e);
                         continue;
                     }
@@ -148,7 +147,7 @@ public class Valinor {
                             pairedStatsAccumulator.add(value1, value2);
                         }
                     } catch (Exception e) {
-                        LOG.error(e.getMessage());
+                        LOG.error(e);
                         LOG.error("Problem parsing row number " + i + ": " + Arrays.toString(row), e);
                         continue;
                     }
@@ -227,25 +226,86 @@ public class Valinor {
     }
 
 
-    public void executeFilterQuery(Rectangle rectangle, DataPointProcessor pointProcessor, int filterColumn, FilterPredicate filterPredicate) throws IOException {
+/*    public void executeFilterQuery(Rectangle rectangle, DataPointProcessor pointProcessor, Filter filter) throws IOException {
+        int filterColumn = filter.getFilterColumn();
+
         if (filterColumn == this.xColumn || filterColumn == this.yColumn) {
             throw new IllegalArgumentException();
         }
         this.executeDetailsQuery(rectangle, (point, attrs) -> {
-            if (filterPredicate.test(Float.parseFloat(attrs[0]))) {
+            if (filter.test(Float.parseFloat(attrs[0]))) {
                 pointProcessor.process(point, attrs);
             }
         }, filterColumn);
-    }
+    }*/
 
-    public Stats executeNonOptimizedAggQuery(Rectangle rectangle, int column) throws IOException {
-        StatsAccumulator statsAccumulator = new StatsAccumulator();
-        DataPointProcessor pointProcessor = (point, attrs) -> {
-            float value = Float.parseFloat(attrs[0]);
-            statsAccumulator.add(value);
-        };
-        this.executeDetailsQuery(rectangle, pointProcessor, column);
-        return statsAccumulator.snapshot();
+    public QueryResults executeFilterQuery(Rectangle rectangle, DataPointProcessor pointProcessor, Filter filter) throws IOException {
+        int filterColumn = filter.getFilterColumn();
+
+        if (filterColumn == this.xColumn || filterColumn == this.yColumn) {
+            throw new IllegalArgumentException();
+        }
+
+        if (!isInitialized) {
+            return initialize(rectangle, filterColumn, null);
+        }
+
+        CsvProcessor csvProcessor = new CsvProcessorUnivImpl();
+        if (delimiter != null) {
+            csvProcessor.setDelimiter(delimiter);
+        }
+        csvProcessor.selectIndexes(filterColumn);
+        if (randomAccessReader == null) {
+            randomAccessReader = RandomAccessReader.open(new File(this.csvFilePath));
+        }
+        List<TileIterator> tileIterators = this.getTileIterators(rectangle, filterColumn, null);
+        List<TileIterator> rawAccessTileIterators = new ArrayList<>();
+
+        for (TileIterator tileIterator : tileIterators) {
+            StatsAccumulator tileStatsAcc = tileIterator.getTile().getStats(filterColumn);
+            if (tileStatsAcc != null) {
+                Boolean test = filter.getFilterPredicate().testTile(tileStatsAcc);
+                if (test == null){
+                    rawAccessTileIterators.add(tileIterator);
+                } else if (test) {
+                    while (tileIterator.hasNext()) {
+                        pointProcessor.process(tileIterator.next(), null);
+                    }
+                }
+            } else {
+                rawAccessTileIterators.add(tileIterator);
+            }
+        }
+
+        KWayMergePointIterator pointIterator = new KWayMergePointIterator(rawAccessTileIterators);
+        int rawReads = 0;
+        while (pointIterator.hasNext()) {
+            rawReads++;
+            Point point = pointIterator.next();
+            try {
+                randomAccessReader.seek(point.getFileOffset());
+                String line = randomAccessReader.readLine();
+                if (line != null) {
+                    String[] row = csvProcessor.parseLine(line);
+                    float value = Float.parseFloat(row[0]);
+                    if (filter.getFilterPredicate().test(value)){
+                        pointProcessor.process(point, null);
+                    }
+                    if (pointIterator.isFullyContained()) {
+                        pointIterator.getCurrentTile().adjustStats(filterColumn, value);
+                    }
+                }
+            } catch (IOException e) {
+                throw new IllegalStateException("Error reading from raw file", e);
+            }
+        }
+
+        QueryResults queryResults = new QueryResults();
+        queryResults.setTileCount(tileIterators.size());
+        queryResults.setRawAccessTileCount(rawAccessTileIterators.size());
+        queryResults.setQuery(rectangle);
+        queryResults.setRawRowsRead(rawReads);
+        return queryResults;
     }
 
     public QueryResults executeAggQuery(Rectangle rectangle, int aggCol) throws IOException {
@@ -463,7 +523,7 @@ public class Valinor {
         this.subtileRatio = subtileRatio;
     }
 
-    public int getMaxDepth(){
+    public int getMaxDepth() {
         return grid.getMaxDepth();
     }
 
